@@ -1,3 +1,4 @@
+import sys
 import logging
 import io
 import os
@@ -11,7 +12,8 @@ from googleapiclient.http import MediaIoBaseDownload
 from oauth2client.service_account import ServiceAccountCredentials
 
 reader = easyocr.Reader(['pt'])  # You can add more languages if needed
-pt_locale = 'pt_BR.UTF-8'  #Linux
+pt_locale = 'en'  #Linux
+# pt_locale = 'pt_BR.UTF-8'  #Linux
 # pt_locale = 'Portuguese_Brazil.1252'  #windows
 
 def get_current_month():
@@ -24,6 +26,10 @@ def get_current_month():
                  
     print("Default locale: ", locale.getdefaultlocale())
     print("Locale alias: ", locale.locale_alias)
+
+    sys.stdout.write("✅ Mensagem no log!\n")
+
+    print("✅ Mensagem no log!", flush=True)
 
 
 
