@@ -12,8 +12,8 @@ from googleapiclient.http import MediaIoBaseDownload
 from oauth2client.service_account import ServiceAccountCredentials
 
 reader = easyocr.Reader(['pt'])  # You can add more languages if needed
-# pt_locale = 'en_US.UTF-8'  #Linux
-pt_locale = 'pt_BR.ISO8859-1'  #Linux
+pt_locale = 'en_US.UTF-8'  #Linux
+# pt_locale = 'pt_BR.ISO8859-1'  #Linux
 # pt_locale = 'Portuguese_Brazil.1252'  #windows
 
 def get_current_month():
@@ -35,18 +35,9 @@ def get_current_month():
 
 def get_current_year():
     from datetime import datetime
-
-    logging.basicConfig(level=logging.INFO)
-    logging.info("✅ Este é um log visível no GitHub Actions!")
-    logging.info("Default locale: ", locale.getdefaultlocale())
-    logging.info("Locale alias: ", locale.locale_alias)
                  
     print("Default locale: ", locale.getdefaultlocale())
     print("Locale alias: ", locale.locale_alias)
-
-    sys.stdout.write("✅ Mensagem no log!\n")
-
-    print("✅ Mensagem no log!", flush=True)
 
     locale.setlocale(locale.LC_ALL, pt_locale)
     year = datetime.now().strftime("%Y")
