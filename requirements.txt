@@ -1,0 +1,8 @@
+easyocr
+torch
+torchvision
+torchaudio
+pandas  # Se você usar planilhas
+gspread  # Se for integrar com Google Sheets
+google-api-python-client
+oauth2client  # Para autenticação no Google Drive
