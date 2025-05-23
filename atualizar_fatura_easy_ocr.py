@@ -15,13 +15,19 @@ pt_locale = 'pt_BR.UTF-8'  #Linux
 
 def get_current_month():
     from datetime import datetime
-    locale.setlocale(locale.LC_TIME, pt_locale)
+
+    print("Default locale: ", locale.getdefaultlocale())
+    print("Locale alias: ", locale.locale_alias)
+
+
+
+    locale.setlocale(locale.LC_ALL, pt_locale)
     month = datetime.now().strftime("%b").capitalize()
     return month
 
 def get_current_year():
     from datetime import datetime
-    locale.setlocale(locale.LC_TIME, pt_locale)
+    locale.setlocale(locale.LC_ALL, pt_locale)
     year = datetime.now().strftime("%Y")
     return year
 
