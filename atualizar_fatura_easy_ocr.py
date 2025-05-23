@@ -181,7 +181,7 @@ def extract_transactions_from_text(text):
                     # print("Valor:", lines[i])
                     sucesso, valor = tryparse_decimal(lines[i])
                     if sucesso:
-                        lines[i] = f'{'R$'}{valor}'
+                        lines[i] = f"***{'R$'}***{valor}***"
                     transaction_parts.append(lines[i])
                 i += 1
             
@@ -219,7 +219,7 @@ def extract_transactions_from_text_xp(text):
                     print("Valor:", lines[i])
                     sucesso, valor = tryparse_decimal(lines[i])
                     if sucesso:
-                        lines[i] = f'{'R$'}{valor}'
+                        lines[i] = f"***{'R$'}***{valor}***"
                     transaction_parts.append(lines[i])
                 i += 1
             
