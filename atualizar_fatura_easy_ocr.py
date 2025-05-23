@@ -1,3 +1,4 @@
+import logging
 import io
 import os
 import pandas as pd
@@ -16,6 +17,11 @@ pt_locale = 'pt_BR.UTF-8'  #Linux
 def get_current_month():
     from datetime import datetime
 
+    logging.basicConfig(level=logging.INFO)
+    logging.info("✅ Este é um log visível no GitHub Actions!")
+    logging.info("Default locale: ", locale.getdefaultlocale())
+    logging.info("Locale alias: ", locale.locale_alias)
+                 
     print("Default locale: ", locale.getdefaultlocale())
     print("Locale alias: ", locale.locale_alias)
 
