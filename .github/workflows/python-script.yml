@@ -25,4 +25,4 @@ jobs:
         run: echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credencial_google.json        
 
       - name: Executar o script
-        run: python atualizar_fatura_easy_ocr.py
+        run: python main.py
