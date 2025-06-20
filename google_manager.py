@@ -39,11 +39,12 @@ class GoogleManager:
             print('Nenhuma imagem encontrada na pasta.', folder_id, local_dir)
             return
         
-        file_name = ""
+        file_names = []
         
         # Download de cada imagem
         for item in items:
             file_name = item['name']
+            file_names.append(file_name)
             request = service.files().get_media(fileId=item['id'])
             fh = io.FileIO(os.path.join(local_dir, item['name']), 'wb')
             downloader = MediaIoBaseDownload(fh, request)
@@ -54,7 +55,7 @@ class GoogleManager:
                 # print(f"Download {int(status.progress() * 100)}% - {item['name']}")
         
         # print(f"\n{len(items)} imagens salvas em: {os.path.abspath(local_dir)}")        
-        return file_name
+        return file_names
 
     @classmethod
     def get_folder_id_from_bank_name(self, year, bank_name):
@@ -150,7 +151,7 @@ class GoogleManager:
             # Verifica se a linha existe e se a descrição NÃO começa com "VR"
             if len(descricoes) >= linha_planilha:
                 descricao_planilha = descricoes[linha_planilha - 1]
-                if descricao_planilha != descricao:
+                if len(descricao_planilha) > 0 and descricao_planilha != descricao:
                     descricao = descricao_planilha
                     
             

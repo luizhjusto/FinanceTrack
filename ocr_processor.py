@@ -2,13 +2,15 @@ import easyocr
 import re
 import pandas as pd
 from utils import Utils as utils
+from datetime import datetime
 
 class OcrProcessor:
 
+    reader = easyocr.Reader(['pt'])
+
     @classmethod
     def extract_text_from_image(cls, image_path):
-        reader = easyocr.Reader(['pt'])
-        text = reader.readtext(image_path)
+        text = cls.reader.readtext(image_path)
         final_text = '\n'.join([detection[1] for detection in text])
         return final_text
 
@@ -19,11 +21,10 @@ class OcrProcessor:
             line.strip().replace("RS ", "R$ ").replace("Rs ", "R$ ")  # Corrige "RS" para "R$"
             for line in text.split('\n') 
             if line.strip() 
-            and not line.startswith(('Cartão', 'Cartão Virtual', 'Cartaio Vinal', 'Subtotal', '——', 'EI Cartão', 'Inclusão de Pagamento'))
+            and not line.startswith(('Cartão', 'Cartão Virtual', 'Cartaio Vinal', 'Subtotal', '——', 'EI Cartão', 'Inclusão de Pagamento', 'USD'))
         ]
 
         regex = utils.get_regex_pattern(bank_name)
-        print(f"Regex utilizado: {regex}")
         cleaned_transactions = []
         i = 0
         while i < len(lines):
@@ -40,7 +41,7 @@ class OcrProcessor:
                         transaction_parts.append(lines[i])
                     i += 1
 
-                print(transaction_parts)
+                # print(transaction_parts)
                 
                 # Junta as partes e corrige a ordem dos campos
                 raw_transaction = " ".join(transaction_parts)
@@ -49,8 +50,9 @@ class OcrProcessor:
             else:
                 i += 1
 
-        print(f"Transações extraídas: {cleaned_transactions}")
-        return cleaned_transactions
+        sorted_transactions = sorted(cleaned_transactions, key=lambda item: datetime.strptime(item.split()[0], "%d/%m"), reverse=True)
+        # print(f"Transações extraídas: {sorted_transactions}")
+        return sorted_transactions
     
     @classmethod
     def extract_transactions_from_textt(self, text, bank_name):
@@ -58,8 +60,9 @@ class OcrProcessor:
         lines = [
             line.strip().replace("RS ", "R$ ").replace("Rs ", "R$ ")  # Corrige "RS" para "R$"
             for line in text.split('\n') 
-            if line.strip() 
-            and not line.startswith(('Cartão', 'Cartão Virtual', 'Cartaio Vinal', 'Subtotal', '——', 'EI Cartão', 'Inclusão de Pagamento'))
+            if line.strip() and not line.startswith(
+                ('Cartão', 'Cartão Virtual', 'Cartaio Vinal', 'Subtotal', '——', 'EI Cartão', 'Inclusão de Pagamento')
+            )
         ]
 
         patterns = utils.get_regex_pattern(bank_name)
@@ -67,13 +70,19 @@ class OcrProcessor:
         transaction_parts = []
         i = 0
         date = None
-        while i < len(lines):
+        while i <= len(lines):
+
+            if i == len(lines):
+                raw_transaction = " ".join(transaction_parts)
+                corrected_transaction = self.correct_transaction_order(raw_transaction)
+                cleaned_transactions.append(corrected_transaction)
+                break
+
             line = lines[i]
-            print(f"Line: {line}, date: {date}")
 
             if(line == "Estorno"):
                 i += 1
-                continue
+                continue            
 
             for index, pattern in enumerate(patterns):
                 if re.match(pattern, line) and index == 0:
@@ -85,8 +94,6 @@ class OcrProcessor:
                         if raw_transaction != "":
                             corrected_transaction = self.correct_transaction_order(raw_transaction)
                             cleaned_transactions.append(corrected_transaction)
-                        print("Transaction parts:", transaction_parts)
-                        print(">>>Cleaned parts:", cleaned_transactions)
                         transaction_parts.clear()
                         transaction_parts = [date]
                     else:
@@ -94,11 +101,8 @@ class OcrProcessor:
 
             i += 1
 
-        corrected_transaction = self.correct_transaction_order(raw_transaction)
-        cleaned_transactions.append(corrected_transaction)
-
-        print(f"Transações extraídas: {cleaned_transactions}")
-        return cleaned_transactions
+        sorted_transactions = sorted(cleaned_transactions, key=lambda x: x.split()[0])  # Ordena por data
+        return sorted_transactions
 
     def correct_transaction_order(raw_transaction):
         # Padroniza "RS" para "R$" e remove espaços extras
@@ -132,8 +136,8 @@ class OcrProcessor:
         pattern_full_date_parcela = re.compile(
             r'(\d{2}/\d{2}/(?:\d{2}|\d{4}))\s+'  # Data (dd/mm/aa OU dd/mm/aaaa)
             r'(.+?)\s+'                          # Descrição (não gulosa, até o próximo padrão)
-            r'(?:Parcela\s+(\d+/\d+)\s+)?'             # Parcelamento (opcional)
-            r'R\$\s*([\d.,]+)'                   # Valor (R$24,15 ou R$ 24,15)
+            r'(?:Parcela\s+(\d+ de \d+)\s+)?'       # Parcelamento (opcional)
+            r'(R\$\s+[\d.,]+)'                   # Valor (R$24,15 ou R$ 24,15)
         )        
         
         # Tenta o padrão normal (descrição antes do valor)
@@ -147,7 +151,6 @@ class OcrProcessor:
         match_inverted = pattern_inverted.search(raw_transaction)
         if match_inverted:
             data, valor, resto, _, parcelamento = match_inverted.groups()
-            # Remove o parcelamento da descrição (se já estiver incluso no "resto")
             if parcelamento and parcelamento in resto:
                 descricao = resto.replace(parcelamento, "").strip()
             else:
@@ -165,7 +168,7 @@ class OcrProcessor:
         match_full_date_parcela = pattern_full_date_parcela.search(raw_transaction)
         if match_full_date_parcela:
             data, descricao, parcelamento, valor = match_full_date_parcela.groups()
-            text_formatted = f"{data} {descricao.strip()} {valor} {parcelamento if parcelamento else ''}".strip()
+            text_formatted = f"{data} {descricao.strip()} {valor} {parcelamento if parcelamento else '-'}".strip()       
             return text_formatted    
         
         # Se nenhum padrão for encontrado, retorna o original (para debug)
@@ -179,25 +182,26 @@ class OcrProcessor:
             r'(\d{2}/\d{2})\s+'          # Data (DD/MM)
             r'(.+?)\s+'                   # Descrição (até o valor)
             r'R\$\s+([\d.,]+)'            # Valor (R$ 150,90)
-            r'(?:\s+Parcela\s+(\d+)\s+de\s+(\d+))?'  # Parcelamento (opcional)
+            r'(?:\s+Parcela\s+(\d+)\s+ de \s+(\d+))?'  # Parcelamento (opcional)
         )
 
         pattern_full_date = re.compile(
             r'(\d{2}/\d{2}/\d{4})\s+'     # Data
             r'(.*?)\s+'                   # Descrição (não guloso)
             r'(R\$\s+[\d.,]+)\s+'         # Valor
-            r'(.*)'                       # Parcelamento (opcional)
-        )     
+            r'(Parcela \d+ de \d+)?'      # Parcelamento (opcional)
+        )
 
         inlineText = "\n".join(text)
 
         transacoes_limpas = self.clean_extracted_text(inlineText)
         transacoes_formatted = []
-
+        # print(f"Transações limpas: {transacoes_limpas}")
         for transacao in transacoes_limpas:
             match = pattern.search(transacao)
             if match:
                 data, descricao, valor, parcela_atual, parcela_total = match.groups()
+                # print(f"Transação 1: {data} {descricao} {valor} {parcela_atual} de {parcela_total}")
                 transacoes_formatted.append({
                     'Data': data,
                     'Descrição': descricao.strip(),
@@ -207,11 +211,12 @@ class OcrProcessor:
 
             match_full_date = pattern_full_date.search(transacao)
             if match_full_date:
-                data, descricao, valor, hora = match_full_date.groups()
+                data, descricao, valor, parcelamento = match_full_date.groups()
+                # print(f"Transação 2: {data} {descricao} {valor} {parcelamento}")
                 transacoes_formatted.append({
                     'Data': data,
                     'Descrição': descricao.strip(),
-                    'Parcela': f"{'-'}/{'-'}",
+                    'Parcela': f"{parcelamento or '-'}",
                     'Valor': valor.replace('.', '')
                 })
 
