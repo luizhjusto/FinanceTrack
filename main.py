@@ -6,6 +6,9 @@ from utils import Utils as utils
 def run_expenses(bank):
     start_row, col_descricao, col_valor = utils.get_first_line(bank)
 
+    if not os.path.exists(f"./{bank}"):
+        os.makedirs(f"./{bank}")
+
     for arquivo in os.listdir(f"./{bank}"):
         caminho_arquivo = os.path.join(f"./{bank}", arquivo)
         if os.path.isfile(caminho_arquivo):
