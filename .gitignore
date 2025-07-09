@@ -2,3 +2,8 @@ credencial_google.json
 /c6
 /xp
 __pycache__/
+__pycache__/*.pyc
+__pycache__/*.pyo
+*.pyc
+*.pyo
+*$py.class

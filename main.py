@@ -6,6 +6,11 @@ from utils import Utils as utils
 def run_expenses(bank):
     start_row, col_descricao, col_valor = utils.get_first_line(bank)
 
+    for arquivo in os.listdir(f"./{bank}"):
+        caminho_arquivo = os.path.join(f"./{bank}", arquivo)
+        if os.path.isfile(caminho_arquivo):
+            os.remove(caminho_arquivo)    
+
     # Baixa múltiplas imagens e recebe uma lista de nomes de arquivos
     image_files = gdrive.download_images_from_drive(
         credentials_path=gdrive.credentials_path,
@@ -17,9 +22,12 @@ def run_expenses(bank):
     if isinstance(image_files, str):
         image_files = [image_files]
 
+    image_files.sort()
+
     # Extrai e concatena texto de todas as imagens
     text = ""
     for file_name in image_files:
+        # print(f"File name: {file_name}")
         full_path = f"{bank}/{file_name}"
         text += ocr.extract_text_from_image(full_path) + "\n"
 
@@ -29,7 +37,6 @@ def run_expenses(bank):
             os.remove(caminho_arquivo)
 
     transacoes_limpas = ocr.extract_transactions_from_text(text, bank)
-    # print(f"Transações extraídas: {transacoes_limpas}")
     df = ocr.parse_credit_card_statement(transacoes_limpas)
     gdrive.update_specific_cells_batch(df, "Financeiro", "Fev", start_row, col_descricao, col_valor)
 

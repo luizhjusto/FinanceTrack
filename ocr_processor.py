@@ -50,9 +50,9 @@ class OcrProcessor:
             else:
                 i += 1
 
-        sorted_transactions = sorted(cleaned_transactions, key=lambda item: datetime.strptime(item.split()[0], "%d/%m"), reverse=True)
+        # sorted_transactions = sorted(cleaned_transactions, key=lambda item: datetime.strptime(item.split()[0], "%d/%m"), reverse=True)
         # print(f"Transações extraídas: {sorted_transactions}")
-        return sorted_transactions
+        return cleaned_transactions
     
     @classmethod
     def extract_transactions_from_textt(self, text, bank_name):

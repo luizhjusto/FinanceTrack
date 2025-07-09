@@ -29,7 +29,7 @@ class GoogleManager:
         query = f"'{folder_id}' in parents and mimeType contains 'image/'"
         results = service.files().list(
             q=query,
-            pageSize=10,
+            pageSize=20,
             fields="nextPageToken, files(id, name, mimeType)"
         ).execute()
         
