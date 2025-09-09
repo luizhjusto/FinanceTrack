@@ -1,8 +1,8 @@
 name: Executar Script Python Periodicamente
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"  # Executa a cada hora (veja mais exemplos abaixo)
+  # schedule:
+  #   - cron: "*/5 * * * *"  # Executa a cada hora (veja mais exemplos abaixo)
   workflow_dispatch: # Permite execução manual
 
 jobs:
